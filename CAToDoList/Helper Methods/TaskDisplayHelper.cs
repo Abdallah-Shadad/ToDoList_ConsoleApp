@@ -8,8 +8,7 @@ namespace CAToDoList.Helper_Methods
     {
         public static void PrintTasks(IEnumerable<ToDoTask> tasks, string title = "Tasks List")
         {
-            Console.Clear();
-            Console.WriteLine($"--- {title} ---\n");
+            Console.WriteLine($"--- {title.ToUpper()} ---\n");
 
             int pending = 0, completed = 0;
 

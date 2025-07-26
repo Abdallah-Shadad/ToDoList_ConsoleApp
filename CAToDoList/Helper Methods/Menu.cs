@@ -42,16 +42,22 @@ namespace CAToDoList.Helper_Methods
                         TaskController.AddTask(description);
                         break;
                     case 2:
+                        TaskController.DisplayAllTasks();
+                        break;    
+                    case 3:
                         TaskController.DisplayActiveTasks();
                         break;
-                    case 3:
-                        TaskController.MarkTaskAsComplete();
-                        break;
                     case 4:
-                        TaskController.RemoveTask();
+                        TaskController.DisplayCompletedTasks();
                         break;
                     case 5:
-                        TaskController.DisplayCompletedTasks();
+                        TaskController.MarkTaskAsComplete();
+                        break;
+                    case 6:
+                        TaskController.RemoveTask();
+                        break;    
+                    case 7:
+                        TaskController.EditTask();
                         break;
                     case 0:
                         if (TaskController.AskYesNo("Are you sure you want to exit?"))
@@ -79,10 +85,12 @@ namespace CAToDoList.Helper_Methods
             Console.WriteLine("To-Do List");
             Console.WriteLine("--------------------------");
             Console.WriteLine("1. Add Task");
-            Console.WriteLine("2. View All Active Tasks");
-            Console.WriteLine("3. Mark Task As Complete");
-            Console.WriteLine("4. Remove Task");
-            Console.WriteLine("5. View All Completed Tasks");
+            Console.WriteLine("2. View All Tasks");
+            Console.WriteLine("3. View All Active Tasks");
+            Console.WriteLine("4. View All Completed Tasks");
+            Console.WriteLine("5. Mark Task As Complete");
+            Console.WriteLine("6. Remove Task");
+            Console.WriteLine("7. Edit Task");
             Console.WriteLine("0. Exit");
             Console.WriteLine("--------------------------");
         }

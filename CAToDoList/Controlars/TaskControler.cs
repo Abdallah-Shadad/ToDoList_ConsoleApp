@@ -43,8 +43,33 @@ namespace CAToDoList.Controllers
         /// <summary>
         /// Displays all active tasks.
         /// </summary>
+        public static void DisplayAllTasks()
+        {
+            Console.Clear(); 
+
+            if (!_activeTasks.Any() && !_completedTasks.Any())
+            {
+                DisplayWarning("No tasks to display.");
+                return;
+            }
+
+            if (_activeTasks.Any())
+                TaskDisplayHelper.PrintTasks(_activeTasks, "Active Tasks");
+            else
+                DisplayWarning("No active tasks.");
+
+            if (_completedTasks.Any())
+                TaskDisplayHelper.PrintTasks(_completedTasks, "Completed Tasks");
+            else
+                DisplayWarning("No completed tasks.");
+        }   
+        
+        /// <summary>
+        /// Displays all active tasks.
+        /// </summary>
         public static void DisplayActiveTasks()
         {
+            Console.Clear();
             if (!_activeTasks.Any())
                 DisplayWarning("No active tasks to display.");
             else
@@ -56,6 +81,7 @@ namespace CAToDoList.Controllers
         /// </summary>
         public static void DisplayCompletedTasks()
         {
+            Console.Clear();
             if (!_completedTasks.Any())
                 DisplayWarning("No completed tasks to display.");
             else
@@ -98,6 +124,35 @@ namespace CAToDoList.Controllers
             _activeTasks.Remove(task);
             _completedTasks.Remove(task);
             DisplaySuccess("Task removed successfully.");
+        }  
+        
+        /// <summary>
+        /// Edit a task.
+        /// </summary>
+        public static void EditTask()
+        {
+            var combined = _activeTasks.Concat(_completedTasks).ToList();
+            var task = SelectTaskFromList(combined, "edit");
+
+            if (task == null)
+                return;
+
+            if (!AskYesNo($"Are you sure you want to edit  \"{task.Description}\"? (y/n): "))
+            {
+                DisplayInfo("Operation cancelled.");
+                return;
+            }
+            Console.Write($"Enter task[{task.Id}] new description: ");
+            var newDescription = Console.ReadLine();
+
+            if (string.IsNullOrWhiteSpace(newDescription))
+            {
+                DisplayError("Description cannot be empty. Edit cancelled.");
+                return;
+            }
+
+            task.Description = newDescription;
+            DisplaySuccess("Task description edited successfully.");
         }
 
         /// <summary>
@@ -105,6 +160,7 @@ namespace CAToDoList.Controllers
         /// </summary>
         private static ToDoTask? SelectTaskFromList(IEnumerable<ToDoTask> tasks, string action)
         {
+            Console.Clear();
             var taskList = tasks.ToList();
 
             if (!taskList.Any())
