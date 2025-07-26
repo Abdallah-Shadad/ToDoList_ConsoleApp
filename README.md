@@ -60,8 +60,6 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Future Improvements
 - [ ] Save tasks to a file for persistence  
       Allow saving tasks to `.txt`, `.json`, or `.csv` files so data isn’t lost when the app closes.
-- [ ] Implement task editing  
-      Provide a way to modify existing tasks’ descriptions by their IDs.
 - [ ] Add task search or filtering  
       Enable searching for tasks by keywords or filtering by status (completed, pending).
 - [ ] Implement task due dates  
