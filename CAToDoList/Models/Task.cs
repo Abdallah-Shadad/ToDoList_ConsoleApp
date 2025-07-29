@@ -8,6 +8,7 @@ namespace CAToDoList.Models
     public class ToDoTask
     {
         private static int _idCounter = 1;
+        private static DateTime _dueDate;
 
         /// <summary>
         /// Gets the unique identifier of the task.
@@ -24,15 +25,31 @@ namespace CAToDoList.Models
         /// </summary>
         public bool IsCompleted { get; set; }
 
+
+        public DateTime DueDate 
+        {
+            get => _dueDate;
+
+            set 
+            { 
+            
+                if (_dueDate == null) 
+                    _dueDate = DateTime.Now.AddHours(1) ;
+                else
+                    _dueDate = value;
+            }
+        }
+
         /// <summary>
         /// Initializes a new task with the specified description and auto-incremented ID.
         /// </summary>
         /// <param name="description">The description of the task.</param>
-        public ToDoTask(string description)
+        public ToDoTask(string description , DateTime dueDate)
         {
             Id = _idCounter++;
             Description = description;
             IsCompleted = false;
+            DueDate = dueDate;
         }
 
         /// <summary>
@@ -41,7 +58,7 @@ namespace CAToDoList.Models
         /// <returns>A formatted string containing the task's ID, description, and completion status.</returns>
         public override string ToString()
         {
-            return $"[{Id}] {Description} {(IsCompleted ? "(Completed)" : "")}";
+            return $"[{Id}] {Description} {(IsCompleted ? "(Completed)" : "")} {DueDate}";
         }
     }
 }

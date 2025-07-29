@@ -39,6 +39,7 @@ namespace CAToDoList.Helper_Methods
                     case 1:
                         Console.Write("Enter task description: ");
                         string? description = Console.ReadLine();
+
                         TaskController.AddTask(description);
                         break;
                     case 2:

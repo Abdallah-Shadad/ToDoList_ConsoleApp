@@ -35,10 +35,21 @@ namespace CAToDoList.Controllers
                 return;
             }
 
-            var task = new ToDoTask(description);
+            Console.Write("Enter due date (yyyy-MM-dd HH:mm) or leave blank for 1 hour later: ");
+            string? dueDateInput = Console.ReadLine();
+            DateTime dueDate = DateTime.Now.AddHours(1);
+
+            if (!string.IsNullOrWhiteSpace(dueDateInput) &&
+                DateTime.TryParse(dueDateInput, out DateTime parsedDate))
+            {
+                dueDate = parsedDate;
+            }
+
+            var task = new ToDoTask(description, dueDate);
             _activeTasks.AddLast(task);
             DisplaySuccess("Task added successfully.");
         }
+
 
         /// <summary>
         /// Displays all active tasks.

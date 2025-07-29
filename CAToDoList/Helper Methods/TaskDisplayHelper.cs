@@ -15,11 +15,28 @@ namespace CAToDoList.Helper_Methods
             foreach (var task in tasks)
             {
                 string status = task.IsCompleted ? "Done" : "Pending";
-                Console.ForegroundColor = task.IsCompleted ? ConsoleColor.Green : ConsoleColor.Yellow;
-                Console.WriteLine($"[{task.Id}] {task.Description} - {status}");
+                string dueText = task.DueDate.ToString("yyyy-MM-dd HH:mm");
+
+                // Set color based on task status and due date
+                if (task.IsCompleted)
+                {
+                    Console.ForegroundColor = ConsoleColor.Green;
+                }
+                else if (DateTime.Now > task.DueDate)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red; // Overdue
+                    status += " (Overdue)";
+                }
+                else
+                {
+                    Console.ForegroundColor = ConsoleColor.Yellow; // Pending and not overdue
+                }
+
+                Console.WriteLine($"[{task.Id}] {task.Description} - {status} | Due: {dueText}");
                 Console.ResetColor();
 
-                if (task.IsCompleted) completed++; else pending++;
+                if (task.IsCompleted) completed++; 
+                else pending++;
             }
 
             Console.WriteLine($"\nPending: {pending} | Completed: {completed}\n");
