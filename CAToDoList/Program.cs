@@ -15,6 +15,10 @@ namespace CAToDoList
         /// </summary>
         static void Main()
         {
+
+            TaskController.LoadTasksFromFile();
+            TaskController.UpdateIdCounterFromFile();
+
             TaskController.OnTaskCompleted += HandleTaskCompleted;
             Menu.DisplayMenu();
         }

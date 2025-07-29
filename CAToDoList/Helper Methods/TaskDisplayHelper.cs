@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using CAToDoList.Controllers;
 using CAToDoList.Models;
 
 namespace CAToDoList.Helper_Methods
@@ -8,6 +9,7 @@ namespace CAToDoList.Helper_Methods
     {
         public static void PrintTasks(IEnumerable<ToDoTask> tasks, string title = "Tasks List")
         {
+
             Console.WriteLine($"--- {title.ToUpper()} ---\n");
 
             int pending = 0, completed = 0;

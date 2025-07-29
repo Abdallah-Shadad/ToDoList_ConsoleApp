@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using CAToDoList.Models;
 using CAToDoList.Helper_Methods;
@@ -16,6 +16,7 @@ namespace CAToDoList.Controllers
     /// </summary>
     public static class TaskController
     {
+        public const string TasksFilePath = @"D:\Programming\C#\CAToDoList\CAToDoList\Data\Tasks.txt";
         public static event TaskCompletedHandler? OnTaskCompleted;
 
         private static readonly LinkedList<ToDoTask> _activeTasks = new();
@@ -24,9 +25,6 @@ namespace CAToDoList.Controllers
         public static IEnumerable<ToDoTask> GetAllActiveTasks() => _activeTasks;
         public static IEnumerable<ToDoTask> GetAllCompletedTasks() => _completedTasks;
 
-        /// <summary>
-        /// Adds a new task after validating input.
-        /// </summary>
         public static void AddTask(string? description)
         {
             if (string.IsNullOrWhiteSpace(description))
@@ -47,16 +45,108 @@ namespace CAToDoList.Controllers
 
             var task = new ToDoTask(description, dueDate);
             _activeTasks.AddLast(task);
+
+            // Write task to file in simple text format: Id|Description|IsCompleted|DueDate
+            string result = $"{task.Id}|{task.Description}|{task.IsCompleted}|{task.DueDate:yyyy-MM-dd HH:mm}";
+            File.AppendAllText(TasksFilePath, result + Environment.NewLine);
+
             DisplaySuccess("Task added successfully.");
         }
 
+        // Load raw task lines from file
+        public static string[] LoadTasks()
+        {
+            if (!File.Exists(TasksFilePath))
+                return Array.Empty<string>();
+
+            var lines = File.ReadAllLines(TasksFilePath);
+
+            if (lines.Length == 0)
+                return Array.Empty<string>();
+
+            return lines;
+        }
+
+        // Update ID counter based on max Id in file
+        public static void UpdateIdCounterFromFile()
+        {
+            var lines = LoadTasks();
+
+            int maxId = 0;
+
+            foreach (var line in lines)
+            {
+                var parts = line.Split('|');
+                if (parts.Length > 0 && int.TryParse(parts[0], out int id))
+                {
+                    if (id > maxId)
+                        maxId = id;
+                }
+            }
+
+            ToDoTask.SetIdCounter(maxId + 1);
+        }
 
         /// <summary>
-        /// Displays all active tasks.
+        /// Load tasks from the file into active and completed lists
+        /// </summary>
+        public static void LoadTasksFromFile()
+        {
+            _activeTasks.Clear();
+            _completedTasks.Clear();
+
+            if (!File.Exists(TasksFilePath))
+                return;
+
+            var lines = File.ReadAllLines(TasksFilePath);
+
+            foreach (var line in lines)
+            {
+                var task = ParseTaskFromLine(line);
+                if (task != null)
+                {
+                    if (task.IsCompleted)
+                        _completedTasks.AddLast(task);
+                    else
+                        _activeTasks.AddLast(task);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Parse a task from a single line
+        /// </summary>
+        private static ToDoTask? ParseTaskFromLine(string line)
+        {
+            var parts = line.Split('|');
+            if (parts.Length != 4)
+                return null;
+
+            if (!int.TryParse(parts[0], out int id) || string.IsNullOrEmpty(parts[1]))
+                return null;
+
+            bool.TryParse(parts[2], out bool isCompleted);
+            DateTime.TryParse(parts[3], out DateTime dueDate);
+
+            if (dueDate == DateTime.MinValue)
+                dueDate = DateTime.Now.AddHours(1);
+
+            var task = new ToDoTask(parts[1], dueDate)
+            {
+                Id = id,
+                IsCompleted = isCompleted
+            };
+
+            return task;
+        }
+
+        /// <summary>
+        /// Displays all active and completed tasks from the file.
         /// </summary>
         public static void DisplayAllTasks()
         {
-            Console.Clear(); 
+            Console.Clear();
+           
 
             if (!_activeTasks.Any() && !_completedTasks.Any())
             {
@@ -73,14 +163,16 @@ namespace CAToDoList.Controllers
                 TaskDisplayHelper.PrintTasks(_completedTasks, "Completed Tasks");
             else
                 DisplayWarning("No completed tasks.");
-        }   
-        
+        }
+
         /// <summary>
-        /// Displays all active tasks.
+        /// Displays all active tasks from the file.
         /// </summary>
         public static void DisplayActiveTasks()
         {
             Console.Clear();
+           
+
             if (!_activeTasks.Any())
                 DisplayWarning("No active tasks to display.");
             else
@@ -88,11 +180,13 @@ namespace CAToDoList.Controllers
         }
 
         /// <summary>
-        /// Displays all completed tasks.
+        /// Displays all completed tasks from the file.
         /// </summary>
         public static void DisplayCompletedTasks()
         {
             Console.Clear();
+           
+
             if (!_completedTasks.Any())
                 DisplayWarning("No completed tasks to display.");
             else
@@ -100,10 +194,11 @@ namespace CAToDoList.Controllers
         }
 
         /// <summary>
-        /// Marks a task as complete.
+        /// Marks a task as complete and updates the file.
         /// </summary>
         public static void MarkTaskAsComplete()
         {
+            
             var task = SelectTaskFromList(_activeTasks, "complete");
             if (task == null)
                 return;
@@ -112,15 +207,17 @@ namespace CAToDoList.Controllers
             _activeTasks.Remove(task);
             _completedTasks.AddLast(task);
 
+            UpdateTaskFile();
             OnTaskCompleted?.Invoke(task);
             DisplaySuccess("Task marked as complete.");
         }
 
         /// <summary>
-        /// Removes a task from either list after confirmation.
+        /// Removes a task from either list after confirmation and updates the file.
         /// </summary>
         public static void RemoveTask()
         {
+           
             var combined = _activeTasks.Concat(_completedTasks).ToList();
             var task = SelectTaskFromList(combined, "remove");
             if (task == null)
@@ -134,21 +231,23 @@ namespace CAToDoList.Controllers
 
             _activeTasks.Remove(task);
             _completedTasks.Remove(task);
+            UpdateTaskFile();
             DisplaySuccess("Task removed successfully.");
-        }  
-        
+        }
+
         /// <summary>
-        /// Edit a task.
+        /// Edits a task and updates the file.
         /// </summary>
         public static void EditTask()
         {
+           
             var combined = _activeTasks.Concat(_completedTasks).ToList();
             var task = SelectTaskFromList(combined, "edit");
 
             if (task == null)
                 return;
 
-            if (!AskYesNo($"Are you sure you want to edit  \"{task.Description}\"? (y/n): "))
+            if (!AskYesNo($"Are you sure you want to edit \"{task.Description}\"? (y/n): "))
             {
                 DisplayInfo("Operation cancelled.");
                 return;
@@ -163,7 +262,19 @@ namespace CAToDoList.Controllers
             }
 
             task.Description = newDescription;
+            UpdateTaskFile();
             DisplaySuccess("Task description edited successfully.");
+        }
+
+        /// <summary>
+        /// Updates the task file with current active and completed tasks.
+        /// </summary>
+        private static void UpdateTaskFile()
+        {
+            var allTasks = _activeTasks.Concat(_completedTasks).ToList();
+            var lines = allTasks.Select(task =>
+                $"{task.Id}|{task.Description}|{task.IsCompleted}|{task.DueDate:yyyy-MM-dd HH:mm}");
+            File.WriteAllLines(TasksFilePath, lines);
         }
 
         /// <summary>
@@ -193,7 +304,7 @@ namespace CAToDoList.Controllers
                     continue;
                 }
 
-                if (input.Equals("cancel", StringComparison.OrdinalIgnoreCase)||input.Equals("c", StringComparison.OrdinalIgnoreCase))
+                if (input.Equals("cancel", StringComparison.OrdinalIgnoreCase) || input.Equals("c", StringComparison.OrdinalIgnoreCase))
                 {
                     DisplayInfo("Operation cancelled.");
                     return null;
